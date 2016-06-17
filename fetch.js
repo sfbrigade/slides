@@ -18,7 +18,7 @@ request.get([folderUrl, parentFolderId, urlTail].join('')).end(function(err, res
     folderRequests.push(requestFolder(folder))
   })
   InternalPromise.all(folderRequests).then(function(folders){
-    // console.log(folders)
+    console.log(JSON.stringify(folders, null, ' '))
   }).catch(function(err){
     throw err
   })
@@ -58,20 +58,28 @@ function parseDateFolder(content){
   var viewerItemsFront = ', viewerItems: '
   var viewerItemsBack = ',}; _initFolderLandingPageApplication'
   var title = content.split(titleFront)[1]
-  title = title.split(titleBack)[1]
+  title = title.split(titleBack)[0]
   var viewerItems = content.split(viewerItemsFront)[1]
   viewerItems = viewerItems.split(viewerItemsBack)[0]
   viewerItems = fixJSONIssues(viewerItems)
-  console.log(viewerItems)
   try {
     var items = JSON.parse(viewerItems)
   } catch(e){
     console.error('An Error occured!')
     throw e
   }
-  console.log(items)
-  return items
-  // no end, since the end of the document is the end of the object
+  items = _.map(items, function(item){
+    var newItem = {}
+    newItem.name = item[0]
+    newItem.screenshot = item[1]
+    newItem.type = item[4]
+    newItem.link = item[6]
+    return newItem
+  })
+  return {
+    name:title,
+    children:items
+  }
 }
 
 function fixJSONIssues (content){
